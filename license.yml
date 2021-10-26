@@ -1,0 +1,12 @@
+---
+  - name: License Certify the Web
+    hosts: "{{ match_host }}"
+    tasks:
+      - name: Run Certify the Web license command
+        win_command: certify activate "{{ license_email }}" "{{ license_key }}"
+        args:
+          chdir: C:\Program Files\CertifyTheWeb
+        register: license
+      - name: Show command output
+        debug:
+          msg: "{{ license }}"
