@@ -7,7 +7,7 @@
           url: "{{ package_url }}{{ backup_name }}"
           dest: C:\Windows\Temp\
       - name: Run Certify the Web backup import
-        win_command: certify backup import "C:\\Windows\\Temp\\{{ backup_name }}"
+        win_command: "certify backup import C:\\Windows\\Temp\\{{ backup_name }}"
         args:
           chdir: C:\Program Files\CertifyTheWeb
         register: import_cmd
