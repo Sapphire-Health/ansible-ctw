@@ -2,19 +2,27 @@
   - name: License Certify the Web
     hosts: "{{ match_host }}"
     tasks:
+      - name: Download Certify the Web Backup
+        win_get_url:
+          url: "{{ package_url }}{{ backup_name }}"
+          dest: C:\Windows\Temp\
+      - name: Run Certify the Web backup import
+        win_command: certify backup import "C:\\Windows\\Temp\\{{ backup_name }}"
+        args:
+          chdir: C:\Program Files\CertifyTheWeb
+        register: import
+      - name: Show import command output
+        debug:
+          msg: "{{ import }}"
+      - name: Delete Certify the Web Backup
+        win_file:
+          path: "C:\\Windows\\Temp\\{{ backup_name }}"
+          state: absent
       - name: Run Certify the Web license command
         win_command: certify activate "{{ license_email }}" "{{ license_key }}"
         args:
           chdir: C:\Program Files\CertifyTheWeb
         register: license
-      - name: Show command output
+      - name: Show license command output
         debug:
           msg: "{{ license }}"
-      - name: Create an ACME account for letsencrypt
-        win_command: certify acmeaccount add letsencrypt.org "{{ license_email }}"
-        args:
-          chdir: C:\Program Files\CertifyTheWeb
-        register: account
-      - name: Show command output
-        debug:
-          msg: "{{ account }}"
