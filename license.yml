@@ -10,10 +10,10 @@
         win_command: certify backup import "C:\\Windows\\Temp\\{{ backup_name }}"
         args:
           chdir: C:\Program Files\CertifyTheWeb
-        register: import
+        register: import_cmd
       - name: Show import command output
         debug:
-          msg: "{{ import }}"
+          msg: "{{ import_cmd }}"
       - name: Delete Certify the Web Backup
         win_file:
           path: "C:\\Windows\\Temp\\{{ backup_name }}"
