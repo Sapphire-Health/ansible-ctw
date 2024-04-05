@@ -26,3 +26,11 @@
       - name: Show license command output
         debug:
           msg: "{{ license }}"
+      - name: Run command to create letsencrypt ACME account
+        win_command: certify acmeaccount add letsencrypt.org "{{ license_email }}"
+        args:
+          chdir: C:\Program Files\CertifyTheWeb
+        register: account
+      - name: Show letsencrypt ACME account creation command output
+        debug:
+          msg: "{{ account }}"
