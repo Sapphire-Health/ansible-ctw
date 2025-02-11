@@ -1,36 +1,58 @@
 ---
   - name: License Certify the Web
-    hosts: "{{ match_host }}"
+    hosts: all
     tasks:
-      - name: Download Certify the Web Backup
-        win_get_url:
-          url: "{{ package_url }}{{ backup_name }}"
-          dest: C:\Windows\Temp\
-      - name: Run Certify the Web backup import
-        win_command: "certify backup import C:\\Windows\\Temp\\{{ backup_name }} {{ backup_passphrase }}"
+      # - name: Download Certify the Web Backup
+      #   ansible.windows.win_get_url:
+      #     url: "{{ package_url }}{{ backup_name }}"
+      #     dest: C:\Windows\Temp\
+      # - name: Run Certify the Web backup import
+      #   ansible.windows.win_command: "certify backup import C:\\Windows\\Temp\\{{ backup_name }} {{ backup_passphrase }}"
+      #   args:
+      #     chdir: C:\Program Files\CertifyTheWeb
+      #   register: import_cmd
+      # - name: Show import command output
+      #   ansible.builtin.debug:
+      #     msg: "{{ import_cmd }}"
+      # - name: Delete Certify the Web Backup
+      #   ansible.windows.win_file:
+      #     path: "C:\\Windows\\Temp\\{{ backup_name }}"
+      #     state: absent
+      - name: Create AWS Route 53 API Credential
+        ansible.windows.win_command: "certify credential store \"{{ cred_uuid }}\" \"{{ cred_name }}\" {{ cred_type }} \"{'accesskey':'{{ cred_accesskey }}','secretaccesskey':'{{ cred_secretaccesskey }}'}\""
         args:
           chdir: C:\Program Files\CertifyTheWeb
-        register: import_cmd
-      - name: Show import command output
-        debug:
-          msg: "{{ import_cmd }}"
-      - name: Delete Certify the Web Backup
-        win_file:
-          path: "C:\\Windows\\Temp\\{{ backup_name }}"
-          state: absent
+        register: aws_credential
+      - name: Show credential command output
+        ansible.builtin.debug:
+          msg: "{{ aws_credential }}"
+      - name: Get ACME Accounts
+        ansible.windows.win_command: "certify acmeaccount list"
+        args:
+          chdir: C:\Program Files\CertifyTheWeb
+        register: acme_account
+      - name: Show acme accounts
+        ansible.builtin.debug:
+          msg: "{{ acme_account }}"
+      - name: Set account_exists to true if a letsencrypt account exists
+        ansible.builtin.set_fact:
+          account_exists: true
+        when: acme_account.stdout is search("acme-v02.api.letsencrypt.org")
+      - name: Create ACME Account
+        when: account_exists is not defined
+        ansible.windows.win_command: "certify acmeaccount add letsencrypt.org {{ license_email }}"
+        args:
+          chdir: C:\Program Files\CertifyTheWeb
+        register: create_acme_account
+      - name: Show acme account command output
+        when: account_exists is not defined
+        ansible.builtin.debug:
+          msg: "{{ create_acme_account }}"
       - name: Run Certify the Web license command
-        win_command: certify activate "{{ license_email }}" "{{ license_key }}"
+        ansible.windows.win_command: certify activate "{{ license_email }}" "{{ license_key }}"
         args:
           chdir: C:\Program Files\CertifyTheWeb
         register: license
       - name: Show license command output
-        debug:
+        ansible.builtin.debug:
           msg: "{{ license }}"
-      - name: Run command to create letsencrypt ACME account
-        win_command: certify acmeaccount add letsencrypt.org "{{ license_email }}"
-        args:
-          chdir: C:\Program Files\CertifyTheWeb
-        register: account
-      - name: Show letsencrypt ACME account creation command output
-        debug:
-          msg: "{{ account }}"

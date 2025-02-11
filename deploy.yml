@@ -1,14 +1,14 @@
 ---
   - name: Deploy Certify the Web
-    hosts: "{{ match_host }}"
+    hosts: all
     tasks:
       - name: Download Certify the Web
-        win_get_url:
+        ansible.windows.win_get_url:
           url: "{{ package_url }}{{ package_name }}"
           dest: C:\Windows\Temp\
       - name: Install/Update Certify the Web
-        win_command: "C:\\Windows\\Temp\\{{ package_name }} {{ install_params }}"
+        ansible.windows.win_command: "C:\\Windows\\Temp\\{{ package_name }} {{ install_params }}"
       - name: Delete Certify the Web package
-        win_file:
+        ansible.windows.win_file:
           path: "C:\\Windows\\Temp\\{{ package_name }}"
           state: absent
